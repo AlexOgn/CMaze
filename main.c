@@ -9,9 +9,17 @@
 int maze[HEIGHT][WIDTH];
 int posX = 1, posY = 1;
 
-void updateMaze();
+void updateMaze(HANDLE, WORD);
 
 int main(void){
+    /* color setup deaznam*/
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+
     for(int i=0;i<SIZE;i++){
         maze[i][0] = 1;
         maze[i][WIDTH-1] = 1;
@@ -19,44 +27,46 @@ int main(void){
         maze[HEIGHT-1][i] = 1;
     }
     maze[posX][posY] = 2;
-    updateMaze();
+    maze[4][13] = 1;
+    updateMaze(hConsole, saved_attributes);
     while(1) {
         int posX1 = posX;
         int posY1 = posY;
         if(GetAsyncKeyState(VK_NUMPAD4)){
-                if(posX > 1){
+                if(maze[posY][posX-1] != 1){
                     posX -= 1;
                 }
         }
         if(GetAsyncKeyState(VK_NUMPAD6)){
-                if(posX < WIDTH-2){
+                if(maze[posY][posX+1] != 1){
                     posX += 1;
                 }
         }
 
         if(GetAsyncKeyState(VK_NUMPAD8)){
-                if(posY > 1){
+                if(maze[posY-1][posX] != 1){
                     posY -= 1;
                 }
         }
 
         if(GetAsyncKeyState(VK_NUMPAD5)){
-                if(posY < HEIGHT){
+                if(maze[posY+1][posX] != 1){
                     posY += 1;
                 }
         }
         if(posX != posX1 || posY != posY1){
             maze[posY1][posX1] = 0;
             maze[posY][posX] = 2;
-            updateMaze();
+            updateMaze(hConsole, saved_attributes);
         }
         Sleep(100);
     }
 
-    updateMaze(maze[HEIGHT][WIDTH]);
+    updateMaze(hConsole, saved_attributes);
+    CloseHandle(hConsole);
 }
 
-void updateMaze(){
+void updateMaze(HANDLE console,WORD attr){
     system("cls");
     for(int y=0;y<HEIGHT;y++) {
 		printf("\n");
@@ -64,9 +74,13 @@ void updateMaze(){
 			if(maze[y][x] == 0){
                 printf("  ");
 			}else if(maze[y][x] == 1){
-                printf("# ");
+			    SetConsoleTextAttribute(console, BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED);
+                printf("  ");
+                SetConsoleTextAttribute(console, attr);
 			}else if(maze[y][x] == 2){
-                    printf("F ");
+			    SetConsoleTextAttribute(console, BACKGROUND_GREEN);
+                printf("  ");
+                SetConsoleTextAttribute(console, attr);
 			}else{
                 printf("?");
 			}
